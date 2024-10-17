@@ -22,8 +22,9 @@ As with proj4.js library, coordinates can be provided as an object of the form `
 - lat,lon: `msg.payload.lon` and `msg.payload.lat`
 - latitude,longitude: `msg.payload.longitude` and `msg.payload.latitude`
 - eastings,northings: `msg.payload.eastings` and `msg.payload.northings`
+- GeoJSON: `msg.payload` as a GeoJSON FeatureCollection, optionally set `msg.payload.features` as an array of GeoJSON Features.
 
-You can also provide a GeoJSON Feature or FeatureCollection object as your msg.payload and the node will transform all the coordinates therein, keeping any other feature properties intact. 
+When inputting GeoJSON, the node will transform all the coordinates found in the `features` array, keeping any other feature properties intact. 
 
 NOTE 1: GeoJSON only officially supports WGS84 / GPS (ESPG:4326), so if you want to be fully GeoJSON compliant you should use that as your target CRS.  
 
