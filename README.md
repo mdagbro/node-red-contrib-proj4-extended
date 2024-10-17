@@ -13,6 +13,8 @@ The user first chooses a method for specifiying the two CRSs to use in the conve
 
 Alternatively users can select 'Proj / WKT string' in order to input the relevant [proj-strings](https://proj.org/usage/quickstart.html) or [well-known text](https://en.wikipedia.org/wiki/Well-known_text_representation_of_coordinate_reference_systems) (WKT) representations as found on [epsg.io](http://epsg.io/) or [spatialreference.org](https://spatialreference.org/).
 
+These strings can also be overridden by setting `msg.firstCRS` and/or `msg.secondCRS` to your preferred CRS strings in the message. 
+
 ![Proj WKT String](images/Proj_WKT_String.PNG)
 
 As with proj4.js library, coordinates can be provided as an object of the form `{x:x,y:y}` or an array of the form `[x,y]`. Additionally the node will parse the incomming message payload for coordinates identified by one of the following combinations of payload properties:
@@ -21,7 +23,12 @@ As with proj4.js library, coordinates can be provided as an object of the form `
 - latitude,longitude: `msg.payload.longitude` and `msg.payload.latitude`
 - eastings,northings: `msg.payload.eastings` and `msg.payload.northings`
 
-Results will be returned as a new message property `msg.proj4_coords`. The results will be returned in the same format as they were received, either an object of the form `{x:x,y:y}` or as an array of the form `[x,y]`.
+You can also provide a GeoJSON Feature or FeatureCollection object as your msg.payload and the node will transform all the coordinates therein, keeping any other feature properties intact. 
+
+NOTE 1: GeoJSON only officially supports ESPG:4326. 
+NOTE 2: As an effect of only transforming point coordinates, very big features (e.g. lines spanning a significant part of the globe) may be distorted by the transformation. While all coordinate points will be transformed correctly, any lines connected between them may not be exactly preserved. A "straight line" in one coordinate system might not be straight in another - But GeoJSON lines will be expressed as straight lines in the new coordinate system as well.
+
+Results will be returned on the msg.payload in the same format as they were received, either an object of the form `{x:x,y:y}`, as an array of the form `[x,y]`, or as a GeoJSON object.
 
 ## Example File
 An example file has been provided which demonstrates common usage of the node. Access the example by navigating to the Node-Red editor's menu and selecting **Export > Examples > node-red-contrib-proj4 > Coordinate Transformation**.
