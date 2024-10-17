@@ -26,6 +26,7 @@ As with proj4.js library, coordinates can be provided as an object of the form `
 You can also provide a GeoJSON Feature or FeatureCollection object as your msg.payload and the node will transform all the coordinates therein, keeping any other feature properties intact. 
 
 NOTE 1: GeoJSON only officially supports ESPG:4326. 
+
 NOTE 2: As an effect of only transforming point coordinates, very big features (e.g. lines spanning a significant part of the globe) may be distorted by the transformation. While all coordinate points will be transformed correctly, any lines connected between them may not be exactly preserved. A "straight line" in one coordinate system might not be straight in another - But GeoJSON lines will be expressed as straight lines in the new coordinate system as well.
 
 Results will be returned on the msg.payload in the same format as they were received, either an object of the form `{x:x,y:y}`, as an array of the form `[x,y]`, or as a GeoJSON object.
@@ -36,7 +37,7 @@ An example file has been provided which demonstrates common usage of the node. A
 ![Example Flow](images/Example_Flow.PNG)
 
 ## Supported Coordinate Reference Systems
-Currently the Proj4 node supports the following coordinate systems:
+Currently the Proj4 node has presets for the following coordinate systems:
 - OSGB (EPSG:27700)
 - ITM (EPSG:2157)
 - Irish Grid (EPSG:29903)
