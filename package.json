@@ -1,5 +1,5 @@
 {
-  "name": "node-red-contrib-proj4",
+  "name": "node-red-contrib-proj4-extended",
   "version": "1.0.0",
   "description": "A Node-Red node for performing geographic coordinate conversions",
   "node-red": {
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/virtualarchitectures/node-red-contrib-proj4.git"
+    "url": "git+https://github.com/mdagbro/node-red-contrib-proj4-extended.git"
   },
   "keywords": [
     "node-red",
@@ -23,13 +23,13 @@
     "proj4": "2.5.0"
   },
   "author": {
-    "name": "Oliver Dawkins",
-    "email": "virtualarchitectures@gmail.com",
-    "url": "https://github.com/virtualarchitectures"
+    "name": "Oliver Dawkins and Magnus Dagbro",
+    "email": "mdagbro@gmail.com",
+    "url": "https://github.com/mdagbro"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/virtualarchitectures/node-red-contrib-proj4/issues"
+    "url": "https://github.com/mdagbro/node-red-contrib-proj4-extended/issues"
   },
-  "homepage": "https://github.com/virtualarchitectures/node-red-contrib-proj4#readme"
+  "homepage": "https://github.com/mdagbro/node-red-contrib-proj4-extended#readme"
 }
