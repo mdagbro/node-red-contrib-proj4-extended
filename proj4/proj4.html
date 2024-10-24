@@ -4,7 +4,6 @@
         color: '#a6bbcf',
         defaults: {
             name: {value:""},
-            select: {value:"epsg_code", required:true},
             firstProjection: {value:"EPSG:4326", required:true},
             secondProjection: {value:"EPSG:27700", required:true},
             firstCRS: {value:""},
@@ -20,27 +19,11 @@
             return this.name?"node_label_italic":"";
         },
 
-        oneditprepare: function() {
-            $("#node-input-select").change(function() {
-                var id = $("#node-input-select option:selected").val();
-                $(".projection-type").hide();
-                $("#projection-type-"+id).show();
-            });
-
-            var id = $("#node-input-select option:selected").val();
-            $(".projection-type").hide();
-            $("#projection-type-"+id).show();
-        },
-
         oneditsave: function() {
-            var type = $("#node_input-select option:selected").val();
-            if(type == "crs_string"){
-                $("#node-input-firstProjection").val("");
-                $("#node-input-secondProjection").val("");
-            } else if (type == "epsg_code") {
-                $("#node-input-firstString").val("");
-                $("#node-input-secondString").val("");
-            }
+            $("#node-input-firstProjection").val("");
+            $("#node-input-secondProjection").val("");
+            $("#node-input-firstString").val("");
+            $("#node-input-secondString").val("");
         },
 
     });
@@ -50,13 +33,6 @@
     <div class="form-row">
         <label for="node-input-name"><i class="icon-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
-    </div>
-    <div class="form-row">
-        <label for="node-input-select" style="width:25%"><i class="fa fa-globe"></i> Selection</label>
-        <select type="text" id="node-input-select" style="width: 50%">
-        	<option value="epsg_code">EPSG Code</option>
-        	<option value="crs_string">Proj / WKT String</option>
-        </select>
     </div>
     <div class="form-row projection-type" id="projection-type-epsg_code">
         <label for="node-input-firstProjection" style="width:25%">Convert from</label>
@@ -116,15 +92,22 @@
     <h3>Details</h3>
         <p>The node outputs coordinates as an array of the form <code>[x,y]</code>.</p>
         <p>The user specifies a coordinate reference system to 'Convert from', and a second to 'Convert to'. When the node receives a payload with coordinates in an accepted format it will transform the values from the first CRS to the second.</p>
-        <p>The user first chooses a method for specifiying the two CRSs to use in the conversion. Selecting 'EPSG Codes' provides prepopulated dropdown lists. Alternatively users can select 'Proj / WKT string' in order to input the relevant <a href="https://proj.org/usage/quickstart.html">proj-strings</a> or <a href="https://en.wikipedia.org/wiki/Well-known_text_representation_of_coordinate_reference_systems">well-known text</a> (WKT) representations as found on <a href="https://epsg.io/">epsg.io</a> or <a href="https://spatialreference.org/">spatialreference.org</a>.</p>
-        <p>As with proj4.js library, coordinates can be provided as an object of the form <code>{x:x,y:y}</code> or an array of the form <code>[x,y]</code>. Additionally the node will parse the incomming message payload for coordinates identified by one of the following combinations of payload properties: 
+        <p>The user first chooses a method for specifiying the two CRSs to use in the conversion. Selecting 'EPSG Codes' provides prepopulated dropdown lists. Alternatively users can input 'Proj / WKT string' in order to override the first or seconds CRS with  <a href="https://proj.org/usage/quickstart.html">proj-strings</a> or <a href="https://en.wikipedia.org/wiki/Well-known_text_representation_of_coordinate_reference_systems">well-known text</a> (WKT) representations as found on <a href="https://epsg.io/">epsg.io</a> or <a href="https://spatialreference.org/">spatialreference.org</a>.</p>
+        <p>The user can also specify the CRSs programmatically by providing Proj / WKT string(s) on msg.firstCRS and/or msg.secondCRS.</p>
+        <p>As with proj4.js library, coordinates can be provided as an object of the form <code>{x:x,y:y}</code> or an array of the form <code>[x,y]</code>. Additionally the node will parse the incoming message payload for coordinates identified by one of the following combinations of payload properties: 
         <ul>
             <li>x,y: <code>msg.payload.x && msg.payload.y</code></li>
             <li>lat,lon: <code>msg.payload.lon && msg.payload.lat</code></li>
             <li>latitude,longitude: <code>msg.payload.longitude && msg.payload.latitude</code></li>
             <li>eastings,northings: <code>msg.payload.eastings && msg.payload.northings</code></li>
+            <li>GeoJSON: <code>msg.payload</code> as a GeoJSON FeatureCollection, optionally set <code>msg.payload.features</code> as an array of GeoJSON Features.</li>
+
         </ul></p>
-        <p>Results will be returned attached as a new message property <code>msg.proj4_coords</code>. The results will be returned in the same format as they were received, either an object of the form <code>{x:x,y:y}</code> or as an array of the form <code>[x,y]</code>.</p>
+        <p>When inputting GeoJSON, the node will transform all the coordinates found in the <code>features</code> array, keeping any other feature properties intact.</p>
+        <p><strong>NOTE 1:</strong> GeoJSON only officially supports WGS84 / GPS (ESPG:4326), so if you want to be fully GeoJSON compliant you should use that as your target CRS.</p>
+        <p><strong>NOTE 2:</strong> As an effect of only transforming point coordinates, very big features (e.g. lines spanning a significant part of the globe) may be distorted by the transformation. While all coordinate points will be transformed correctly, any lines connected between them may not be exactly preserved. A "straight line" in one coordinate system might not be straight in another - But GeoJSON lines will be expressed as straight lines in the new coordinate system as well.</p>
+        <p>Results will be returned on the <code>msg.proj4_coords</code> in the same format as they were received, either an object of the form <code>{x:x,y:y}</code>, as an array of the form <code>[x,y]</code>, or (in the case of GeoJSON) as a GeoJSON object on <code>msg.payload</code>.</p>
+
         <p>Currently the Proj4 node supports the following coordinate systems:
         <ul>
             <li>OSGB (EPSG:27700)</li>

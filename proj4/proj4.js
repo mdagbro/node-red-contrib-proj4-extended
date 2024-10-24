@@ -49,11 +49,25 @@ module.exports = function(RED) {
 	  			node.input_coords = msg.payload;
 	  		}
 
-      		if (node.select === "epsg_code") {
 
-	      		//console.log('Converting from ' + node.firstProjection + ' to ' + node.secondProjection)
-		  		node.output_coords = proj4(proj4.defs[node.firstProjection],proj4.defs[node.secondProjection],node.input_coords);
-		  		msg.proj4_coords = node.output_coords;
+			let fromCRS;
+			let toCRS; 
+
+
+			if (msg.firstCRS){
+				fromCRS = msg.firstCRS
+			} else {
+				fromCRS = node.firstCRS ? node.firstCRS : proj4.defs[node.firstProjection];
+			}
+
+			if (msg.secondCRS){
+				toCRS = msg.secondCRS
+			} else {
+				toCRS = node.secondCRS ? node.secondCRS : proj4.defs[node.secondProjection];
+			}
+
+			msg.firstCRS = fromCRS;
+			msg.secondCRS = toCRS; 
 
 		  	} else if (node.select === "crs_string") {
 		  		
