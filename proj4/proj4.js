@@ -5,6 +5,36 @@ module.exports = function(RED) {
 	function Proj4Node(n) {
 		RED.nodes.createNode(this,n);
 		var node = this;
+		const projectGeoJSONFeature = function(fromCRS, toCRS, feature){
+			if (feature.geometry.type === 'Point'){
+				let coords = proj4(fromCRS, toCRS, feature.geometry.coordinates);
+				feature.geometry.coordinates = coords;
+			} else if (feature.geometry.type === 'LineString' || feature.geometry.type === 'MultiPoint'){
+				let coords = feature.geometry.coordinates;
+				for (let i = 0; i < coords.length; i++){
+					coords[i] = proj4(fromCRS, toCRS, coords[i]);
+				}
+				feature.geometry.coordinates = coords;
+			} else if (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiLineString'){
+				let coords = feature.geometry.coordinates;
+				for (let i = 0; i < coords.length; i++){
+					for (let j = 0; j < coords[i].length; j++){
+						coords[i][j] = proj4(fromCRS, toCRS, coords[i][j]);
+					}
+				}
+				feature.geometry.coordinates = coords;
+			} else if (feature.geometry.type === 'MultiPolygon'){
+				let coords = feature.geometry.coordinates;
+				for (let i = 0; i < coords.length; i++){
+					for (let j = 0; j < coords[i].length; j++){
+						for (let k = 0; k < coords[i][j].length; k++){
+							coords[i][j][k] = proj4(fromCRS, toCRS, coords[i][j][k]);
+						}
+					}
+				}
+				feature.geometry.coordinates = coords;
+			}
+		}
 
 		node.on('input', function(msg, send, done) {
 			//WKT OGC Strings
@@ -23,8 +53,6 @@ module.exports = function(RED) {
 		        'EPSG:3857', 'PROJCS["WGS 84 / Pseudo-Mercator",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]],PROJECTION["Mercator_1SP"],PARAMETER["central_meridian",0],PARAMETER["scale_factor",1],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["X",EAST],AXIS["Y",NORTH],EXTENSION["PROJ4","+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs"],AUTHORITY["EPSG","3857"]]'
 		        ]
 	    	]);
-			
-			node.select = n.select;
 
 			node.firstProjection = n.firstProjection;
       		node.secondProjection = n.secondProjection;
@@ -34,6 +62,8 @@ module.exports = function(RED) {
       
       		node.input_coords;
       		node.output_coords;
+
+			let isGeoJSON = false; 
       		var err;
 
       		//console.log('Reading Incomming Payload');
@@ -45,7 +75,10 @@ module.exports = function(RED) {
 	    		node.input_coords = {"x":msg.payload.longitude,"y":msg.payload.latitude};
 	  		} else if (msg.payload.eastings && msg.payload.northings) {
 	    		node.input_coords = {"x":msg.payload.eastings,"y":msg.payload.northings};
-	  		} else {
+	  		} else if (msg.payload.features){
+				// GeoJSON format
+				isGeoJSON = true; 
+			} else {
 	  			node.input_coords = msg.payload;
 	  		}
 
@@ -69,14 +102,19 @@ module.exports = function(RED) {
 			msg.firstCRS = fromCRS;
 			msg.secondCRS = toCRS; 
 
-		  	} else if (node.select === "crs_string") {
-		  		
-		  		//console.log('Converting using Proj / WKT Strings');
-		  		node.output_coords = proj4(node.firstCRS,node.secondCRS,node.input_coords);
-		  		msg.proj4_coords = node.output_coords;
-
-		  	}
-
+			if (!isGeoJSON){
+				//console.log('Converting from ' + fromCRS + ' to ' + toCRS)
+				node.output_coords = proj4(fromCRS, toCRS, node.input_coords);
+				msg.proj4_coords = node.output_coords;
+			} else {
+				//console.log('Converting GeoJSON from ' + fromCRS + ' to ' + toCRS)
+				let features = msg.payload.features;
+				for (let i = 0; i < features.length; i++){
+					projectGeoJSONFeature(fromCRS, toCRS, features[i]);
+				}
+				msg.payload.features = features
+			}
+			
 			if(err) {
 				if (done) {
             		// Node-RED 1.0 compatible
