@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-proj4-geojson",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Node-Red node for performing geographic coordinate conversions",
   "node-red": {
     "nodes": {
@@ -20,7 +20,7 @@
     "mapping"
   ],
   "dependencies": {
-    "proj4": "2.5.0"
+    "proj4": "2.14.0"
   },
   "author": {
     "name": "Oliver Dawkins and Magnus Dagbro",
